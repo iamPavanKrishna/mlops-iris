@@ -5,62 +5,78 @@ from ml_utils import load_model, predict, retrain
 from typing import List
 from datetime import date, datetime
 
-# defining the main app
-app = FastAPI(title="Iris Predictor", docs_url="/")
+app = FastAPI(title="Bug Predictor",docs_url="/")
 
-# calling the load_model during startup.
-# this will train the model and keep it loaded for prediction.
 app.add_event_handler("startup", load_model)
 
-# class which is expected in the payload
 class QueryIn(BaseModel):
-    sepal_length: float
-    sepal_width: float
-    petal_length: float
-    petal_width: float
+    mccabe_line_count_of_code: float
+    mccabe_cyclomatic_complexity: float
+    mccabe_essential_complexity: float
+    mccabe_design_complexity: float
+    halstead_total_operators_operands: float
+    halstead_volume: float
+    halstead_program_length: float
+    halstead_difficulty: float
+    halstead_intelligence: float
+    halstead_effort: float
+    halstead_b: float
+    halstead_time_estimator: float
+    halstead_line_count: float
+    halstead_count_of_lines_of_comments: float
+    halstead_count_of_blank_lines: float
+    lOCodeAndComment: float
+    unique_operators: float
+    unique_operands: float
+    total_operators: float
+    total_operands: float
+    branchCount: float
+    
 
-
-# class which is returned in the response
 class QueryOut(BaseModel):
-    flower_class: str
-    timestamp: datetime  # Its a datetime string (https://fastapi.tiangolo.com/tutorial/extra-data-types/)
+    defects: str
+    timestamp : datetime
 
-# class which is expected in the payload while re-training
 class FeedbackIn(BaseModel):
-    sepal_length: float
-    sepal_width: float
-    petal_length: float
-    petal_width: float
-    flower_class: str
+    mccabe_line_count_of_code: float
+    mccabe_cyclomatic_complexity: float
+    mccabe_essential_complexity: float
+    mccabe_design_complexity: float
+    halstead_total_operators_operands: float
+    halstead_volume: float
+    halstead_program_length: float
+    halstead_difficulty: float
+    halstead_intelligence: float
+    halstead_effort: float
+    halstead_b: float
+    halstead_time_estimator: float
+    halstead_line_count: float
+    halstead_count_of_lines_of_comments: float
+    halstead_count_of_blank_lines: float
+    lOCodeAndComment: float
+    unique_operators: float
+    unique_operands: float
+    total_operators: float
+    total_operands: float
+    branchCount: float
+    defects: bool
 
-# Route definitions
+
+
 @app.get("/ping")
-# Healthcheck route to ensure that the API is up and running
 def ping():
-    return {"ping": "pong", "timestamp": datetime.now()}
+    return {"ping": "pong"}
 
-# Task 4: Added timestamp to the response
 
-@app.post("/predict_flower", response_model=QueryOut, status_code=200)
-# Route to do the prediction using the ML model defined.
-# Payload: QueryIn containing the parameters
-# Response: QueryOut containing the flower_class predicted (200)
-def predict_flower(query_data: QueryIn):
-    output = {"flower_class": predict(query_data), "timestamp": datetime.now()}
+@app.post("/predict", response_model=QueryOut, status_code=200)
+def predict_bug(query_data: QueryIn):
+    output = {'defects': predict(query_data),'timestamp': datetime.now()}
     return output
 
-# Task 4: Added timestamp to the response
-
-@app.post("/feedback_loop", status_code=200)
-# Route to further train the model based on user input in form of feedback loop
-# Payload: FeedbackIn containing the parameters and correct flower class
-# Response: Dict with detail confirming success (200)
-def feedback_loop(data: List[FeedbackIn]):
+@app.post("/feedback",status_code=200)
+def feedback(data: List[FeedbackIn]):
     retrain(data)
-    return {"detail": "Feedback loop successful", "timestamp": datetime.now()}
+    return{"detail":"Feedback successful retrained the model"}
 
-
-# Main function to start the app when main.py is called
 if __name__ == "__main__":
-    # Uvicorn is used to run the server and listen for incoming API requests on 0.0.0.0:8888
-    uvicorn.run("main:app", host="localhost", port=8888, reload=True)  # Changed the host to localhost
+    uvicorn.run("main:app", host='127.0.0.1', port=8888, reload=True, debug=True)
